@@ -1,7 +1,7 @@
 package main
 
-var data = ""
+var state = ""
 
-var journal []string
+type Journal []string
 
-var snapshot = []string{}
+var transactionJournal Journal

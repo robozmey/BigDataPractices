@@ -1,9 +1,13 @@
 package main
 
+import (
+	"fmt"
+)
+
 func main() {
 	go httpServer()
 	go transactionHandler()
+	go snapshotHandler()
 
-	for {
-	}
+	fmt.Scanln()
 }

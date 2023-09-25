@@ -1,21 +1,24 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
+	"sync"
 )
 
 var transactionQueue = make(chan string)
 
 var resultQueue = make(chan string)
 
-func handleReplace(newData string) {
-	data = newData
+var transactionMutex sync.Mutex
+
+func handleReplace(newState string) {
+	state = newState
 	resultQueue <- "OK"
 }
 
 func handleGet() {
-	resultQueue <- data
+	resultQueue <- state
 }
 
 func handleNGGYU() {
@@ -26,7 +29,7 @@ func handleNGGYU() {
 
 	n, _ := f.Read(cache[:])
 
-	data = string(cache[:n])
+	state = string(cache[:n])
 }
 
 type RequestType int32
@@ -50,13 +53,15 @@ func transactionHandler() {
 	for {
 		transaction := <-transactionQueue
 
-		journal = append(journal, transaction)
+		transactionMutex.Lock()
 
-		fmt.Println("New transaction came: ", transaction)
+		transactionJournal = append(transactionJournal, transaction)
+
+		log.Println("New transaction came: ", transaction)
 
 		transactionType, rs := parseTransaction(transaction)
 
-		fmt.Println("New transaction type: ", transactionType)
+		log.Println("New transaction type: ", transactionType)
 
 		switch transactionType {
 		case GetRequest:
@@ -67,6 +72,8 @@ func transactionHandler() {
 			handleNGGYU()
 		}
 
-		fmt.Println("New transaction handled!")
+		log.Println("New transaction handled!")
+
+		transactionMutex.Unlock()
 	}
 }
