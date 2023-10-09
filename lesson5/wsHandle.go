@@ -51,7 +51,7 @@ func wsHandle(w http.ResponseWriter, r *http.Request) {
 	var replicationChannel = make(chan Transaction, 100)
 	defer close(replicationChannel)
 
-	replicationHandler(c, ctx, r.Host)
+	replicaWriter(c, ctx, r.Host)
 
 	c.Close(websocket.StatusNormalClosure, "")
 }

@@ -46,7 +46,7 @@ func replicationDial(peer string) {
 	}
 	defer c.Close(websocket.StatusInternalError, "the sky is falling")
 
-	replicationHandler(c, ctx, peer)
+	replicaReader(c, ctx, peer)
 
 	c.Close(websocket.StatusNormalClosure, "")
 }
