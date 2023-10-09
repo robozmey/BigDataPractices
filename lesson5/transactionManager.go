@@ -11,8 +11,6 @@ var transactionQueue = make(chan Transaction)
 var resultQueue = make(chan int)
 var transactionMutex sync.Mutex
 
-var replicationChannels = make([]chan Transaction, 0)
-
 func handleTransaction() {
 	transaction := <-transactionQueue
 
@@ -31,11 +29,6 @@ func handleTransaction() {
 	vclock[transaction.Source] = transaction.Id
 
 	journal = append(journal, transaction)
-
-	// Send transaction to all replicas
-	for _, replChannel := range replicationChannels {
-		replChannel <- transaction
-	}
 
 	patch, err := jsonpatch.DecodePatch([]byte(transaction.Payload))
 	if err != nil {

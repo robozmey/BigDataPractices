@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log"
 	"net/http"
 	"nhooyr.io/websocket"
@@ -23,31 +22,30 @@ func wsHandle(w http.ResponseWriter, r *http.Request) {
 	}
 	defer c.Close(websocket.StatusInternalError, "the sky is falling")
 
-	ctx, cancel := context.WithTimeout(r.Context(), time.Second*10)
-	defer cancel()
+	ctx := r.Context()
 
 	var replicationChannel = make(chan Transaction, 100)
 	defer close(replicationChannel)
 
-	{
-		transactionMutex.Lock()
+	var transactionSendCount = 0
+	var journalSize = len(journal)
 
-		// Register channel
-		replicationChannels = append(replicationChannels, replicationChannel)
+	// Sends new transaction
+	for {
+		time.Sleep(100 * time.Millisecond)
 
-		// Sends all journaled transactions
-		for _, transaction := range journal {
+		journalSize = len(journal)
+
+		for ; transactionSendCount < journalSize; transactionSendCount++ {
+			transaction := journal[transactionSendCount]
+
 			log.Println("WS:", "sending transaction:", transaction)
-			wsjson.Write(ctx, c, transaction)
+			err := wsjson.Write(ctx, c, transaction)
+			if err != nil {
+				c.Close(websocket.StatusInternalError, err.Error())
+				return
+			}
 		}
-
-		transactionMutex.Unlock()
-	}
-
-	// Sends new transaction from channel
-	for transaction := range replicationChannel {
-		log.Println("WS:", "sending transaction:", transaction)
-		wsjson.Write(ctx, c, transaction)
 	}
 
 	c.Close(websocket.StatusNormalClosure, "")
