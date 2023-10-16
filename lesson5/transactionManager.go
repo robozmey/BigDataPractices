@@ -28,14 +28,14 @@ func handleTransaction() {
 
 	vclock[transaction.Source] = transaction.Id
 
-	journal = append(journal, transaction)
-
 	patch, err := jsonpatch.DecodePatch([]byte(transaction.Payload))
 	if err != nil {
 		resultQueue <- http.StatusBadRequest
 		log.Println("TM:", "Cannot decode transaction: ", err)
 		return
 	}
+
+	journal = append(journal, transaction)
 
 	newsnap, err := patch.Apply([]byte(snap))
 	if err != nil {

@@ -29,7 +29,7 @@ func replicaReader(c *websocket.Conn, ctx context.Context, peer string) {
 }
 
 func replicationHandler(c *websocket.Conn, ctx context.Context, peer string) {
-	go replicaWriter(c, ctx, peer)
+	//go replicaWriter(c, ctx, peer)
 	replicaReader(c, ctx, peer)
 }
 
@@ -46,7 +46,7 @@ func replicationDial(peer string) {
 	}
 	defer c.Close(websocket.StatusInternalError, "the sky is falling")
 
-	replicaReader(c, ctx, peer)
+	replicationHandler(c, ctx, peer)
 
 	c.Close(websocket.StatusNormalClosure, "")
 }

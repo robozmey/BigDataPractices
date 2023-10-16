@@ -38,8 +38,10 @@ func wsHandle(w http.ResponseWriter, r *http.Request) {
 		OriginPatterns:     []string{"*"},
 	})
 
-	log.Println("WS:", "handled new websocket connection:", r.Host)
-	defer log.Println("WS:", "websocket connection handled:", r.Host)
+	peer := ""
+
+	log.Println("WS:", "handled new websocket connection:", peer)
+	defer log.Println("WS:", "websocket connection handled:", peer)
 
 	if err != nil {
 		panic(err)
@@ -51,7 +53,12 @@ func wsHandle(w http.ResponseWriter, r *http.Request) {
 	var replicationChannel = make(chan Transaction, 100)
 	defer close(replicationChannel)
 
-	replicaWriter(c, ctx, r.Host)
+	//tmp := w.Header().
+
+	//var header = strings.Join(tmp, "\n")
+
+	//go replicaReader(c, ctx, peer)
+	replicaWriter(c, ctx, peer)
 
 	c.Close(websocket.StatusNormalClosure, "")
 }
